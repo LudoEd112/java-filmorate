@@ -15,7 +15,7 @@ class UserControllerTest {
     private User user;
 
     @BeforeEach
-    void init(){
+    void init() {
         user = User.builder()
                 .id(1L)
                 .email("datakmakov@yandex.ru")
