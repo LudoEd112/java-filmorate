@@ -9,7 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
+
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +30,10 @@ public class UserController {
 
     @PostMapping
     public User create(@RequestBody User user) {
+        if (user == null) {
+            throw new ValidateException("User is null");
+        }
+        checkValidation(user);
         user.setId(getNextId());
         users.put(user.getId(), user);
         log.info("Пользователь добвален");
@@ -38,6 +45,7 @@ public class UserController {
         if (user.getId() == null) {
             throw new NotFoundException("При запросе нет ID");
         }
+        checkValidation(user);
         User userUpdate = users.get(user.getId());
         userUpdate.setEmail(user.getEmail());
         userUpdate.setName(user.getName());
@@ -45,6 +53,21 @@ public class UserController {
         userUpdate.setLogin(user.getLogin());
         log.info("Обновили информацию пользователя");
         return userUpdate;
+    }
+
+    public void checkValidation(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
+            throw new ValidateException("Не корректный ввод email");
+        }
+        if (user.getLogin() == null || user.getLogin().isBlank()) {
+            throw new ValidateException("Поле login не может быть пустым или содержать пробелы");
+        }
+        if (user.getName() == null) {
+            user.setName(user.getLogin());
+        }
+        if (user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidateException("Дата рождения введена не корректно");
+        }
     }
 
     private long getNextId() {

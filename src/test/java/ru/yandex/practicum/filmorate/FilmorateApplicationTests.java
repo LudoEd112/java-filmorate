@@ -60,7 +60,7 @@ class FilmorateApplicationTests {
 
 	@Test
 	void shouldNotValidFilmWithLargeDescription() {
-		film.setDescription("Романтический фильм про корблекрушение".repeat(15));
+		film.setDescription("Романтический фильм про корблекрушение".repeat(201));
 
 		try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
 			Validator validator = validatorFactory.getValidator();

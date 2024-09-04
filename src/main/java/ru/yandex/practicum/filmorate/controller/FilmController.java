@@ -32,6 +32,10 @@ public class FilmController {
         checkValidation(film);
         film.setId(getNextId());
         films.put(film.getId(), film);
+        if (film == null) {
+            throw new ValidateException("Film is null");
+        }
+
         log.info("Добавили фильм");
         return film;
     }
@@ -52,9 +56,18 @@ public class FilmController {
     }
 
     public void checkValidation(Film film) {
+        if (film.getName() == null || film.getName().trim().isBlank()) {
+            throw new ValidateException("Название фильма не может быть пустым");
+        }
+        if (film.getDescription().length() > 200) {
+            throw new ValidateException("Максимальная длина описания фильма");
+        }
         if (film.getReleaseDate().equals(LocalDate.of(1895, 12, 25)) ||
                 film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 25))) {
-            throw new ValidateException("Дата релиза должна быть не раньше 1895-12-25");
+            throw new ValidateException("Дата релиза должна быть позже 1895-12-25");
+        }
+        if (film.getDuration() < 0) {
+            throw new ValidateException("Продолжительность фильма не может быть отрицательной");
         }
     }
 

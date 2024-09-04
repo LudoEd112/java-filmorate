@@ -102,7 +102,7 @@ class UserControllerTest {
             var violations = validator.validate(user);
             assertEquals(1, violations.stream()
                     .toList().size(), "Валидация не выполнена");
-            assertEquals("PastOrPresent",
+            assertEquals("Past",
                     violations.stream()
                             .toList()
                             .getFirst()
