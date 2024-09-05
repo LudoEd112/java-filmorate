@@ -54,7 +54,7 @@ public class FilmController {
             throw new NotExistException("Поле id нет в запросе");
         }
         checkValidation(film);
-        if (!films.containsKey(film.getId())){
+        if (!films.containsKey(film.getId())) {
             throw new NotFoundException("Такой фильм еще не добавлен");
         }
         Film oldFilm = films.get(film.getId());
