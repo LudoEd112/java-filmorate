@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.yandex.practicum.filmorate.exceptions.NotExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -20,7 +21,15 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
 
-    Map<Long, Film> films = new HashMap<>();
+    private final Map<Long, Film> films = new HashMap<>();
+
+    private Long filmsId = 0L;
+
+    private final LocalDate cinemasBirthday = LocalDate.of(1895, 12, 25);
+
+    private final int descriptionLength = 200;
+
+    private final int minDuration = 0;
 
     @GetMapping
     public Collection<Film> getAllFilms() {
@@ -29,13 +38,12 @@ public class FilmController {
 
     @PostMapping
     public Film create(@RequestBody Film film) {
-        checkValidation(film);
-        film.setId(getNextId());
-        films.put(film.getId(), film);
         if (film == null) {
             throw new ValidateException("Film is null");
         }
-
+        checkValidation(film);
+        film.setId(getNextId());
+        films.put(film.getId(), film);
         log.info("Добавили фильм");
         return film;
     }
@@ -43,9 +51,12 @@ public class FilmController {
     @PutMapping
     public Film update(@RequestBody Film film) {
         if (film.getId() == null) {
-            throw new NotFoundException("Поле id нет в запросе");
+            throw new NotExistException("Поле id нет в запросе");
         }
         checkValidation(film);
+        if (!films.containsKey(film.getId())){
+            throw new NotFoundException("Такой фильм еще не добавлен");
+        }
         Film oldFilm = films.get(film.getId());
         oldFilm.setName(film.getName());
         oldFilm.setDescription(film.getDescription());
@@ -59,25 +70,19 @@ public class FilmController {
         if (film.getName() == null || film.getName().trim().isBlank()) {
             throw new ValidateException("Название фильма не может быть пустым");
         }
-        if (film.getDescription().length() > 200) {
+        if (film.getDescription().length() > descriptionLength) {
             throw new ValidateException("Максимальная длина описания фильма");
         }
-        if (film.getReleaseDate().equals(LocalDate.of(1895, 12, 25)) ||
-                film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 25))) {
+        if (film.getReleaseDate().equals(cinemasBirthday) ||
+                film.getReleaseDate().isBefore(cinemasBirthday)) {
             throw new ValidateException("Дата релиза должна быть позже 1895-12-25");
         }
-        if (film.getDuration() < 0) {
+        if (film.getDuration() < minDuration) {
             throw new ValidateException("Продолжительность фильма не может быть отрицательной");
         }
     }
 
     private long getNextId() {
-
-        long currentMaxId = films.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+        return ++filmsId;
     }
 }

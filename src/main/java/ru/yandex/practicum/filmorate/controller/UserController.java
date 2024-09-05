@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
+import ru.yandex.practicum.filmorate.exceptions.NotExistException;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -43,7 +43,7 @@ public class UserController {
     @PutMapping
     public User update(@RequestBody User user) {
         if (user.getId() == null) {
-            throw new NotFoundException("При запросе нет ID");
+            throw new NotExistException("При запросе нет ID");
         }
         checkValidation(user);
         User userUpdate = users.get(user.getId());
@@ -57,7 +57,7 @@ public class UserController {
 
     public void checkValidation(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
-            throw new ValidateException("Не корректный ввод email");
+            throw new ValidateException("email не может быть пустой или не содержать @.");
         }
         if (user.getLogin() == null || user.getLogin().isBlank()) {
             throw new ValidateException("Поле login не может быть пустым или содержать пробелы");
