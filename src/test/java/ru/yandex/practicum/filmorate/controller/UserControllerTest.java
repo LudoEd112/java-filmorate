@@ -14,6 +14,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserControllerTest {
     private User user;
 
+    UserController userController = new UserController();
+
     @BeforeEach
     void init() {
         user = User.builder()
@@ -23,11 +25,12 @@ class UserControllerTest {
                 .name("Dmitrii")
                 .birthday(LocalDate.of(2004, 10, 22))
                 .build();
+        userController.create(user);
+
     }
 
     @Test
     void shouldUserCreate() {
-
         assertNotNull(user, "Пользователь не создан");
         assertEquals(user.getId(), user.getId(), "Неверный ид созданного пользователя");
         assertEquals(user.getName(), user.getName(), "Неверное имя созданного пользователя");
@@ -39,6 +42,7 @@ class UserControllerTest {
     @Test
     void shouldNotValidUserWithEmptyLogin() {
         user.setLogin(null);
+
 
         try (ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory()) {
             Validator validator = validatorFactory.getValidator();

@@ -25,11 +25,12 @@ public class FilmController {
 
     private Long filmsId = 0L;
 
-    private final LocalDate cinemasBirthday = LocalDate.of(1895, 12, 25);
+    private static final LocalDate CINEMAS_BIRTHDAY = LocalDate.of(1895, 12, 25);
 
-    private final int descriptionLength = 200;
+    private static final int DESCRIPTION_LENGTH = 200;
 
-    private final int minDuration = 0;
+
+    private static final int MIN_DURATION = 0;
 
     @GetMapping
     public Collection<Film> getAllFilms() {
@@ -70,14 +71,14 @@ public class FilmController {
         if (film.getName() == null || film.getName().trim().isBlank()) {
             throw new ValidateException("Название фильма не может быть пустым");
         }
-        if (film.getDescription().length() > descriptionLength) {
+        if (film.getDescription().length() > DESCRIPTION_LENGTH) {
             throw new ValidateException("Максимальная длина описания фильма");
         }
-        if (film.getReleaseDate().equals(cinemasBirthday) ||
-                film.getReleaseDate().isBefore(cinemasBirthday)) {
+        if (film.getReleaseDate().equals(CINEMAS_BIRTHDAY) ||
+                film.getReleaseDate().isBefore(CINEMAS_BIRTHDAY)) {
             throw new ValidateException("Дата релиза должна быть позже 1895-12-25");
         }
-        if (film.getDuration() < minDuration) {
+        if (film.getDuration() < MIN_DURATION) {
             throw new ValidateException("Продолжительность фильма не может быть отрицательной");
         }
     }

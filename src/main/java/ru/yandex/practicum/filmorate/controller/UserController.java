@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.exceptions.NotExistException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -21,7 +22,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    Map<Long, User> users = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
+
+    private Long usersId = 0L;
 
     @GetMapping
     public Collection<User> getAllFilms() {
@@ -34,6 +37,7 @@ public class UserController {
             throw new ValidateException("User is null");
         }
         checkValidation(user);
+        user.setEmptyName();
         user.setId(getNextId());
         users.put(user.getId(), user);
         log.info("Пользователь добвален");
@@ -44,6 +48,9 @@ public class UserController {
     public User update(@RequestBody User user) {
         if (user.getId() == null) {
             throw new NotExistException("При запросе нет ID");
+        }
+        if (!users.containsKey(user.getId())) {
+            throw new NotFoundException("Такой пользователь еще не добавлен");
         }
         checkValidation(user);
         User userUpdate = users.get(user.getId());
@@ -59,11 +66,8 @@ public class UserController {
         if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
             throw new ValidateException("email не может быть пустой или не содержать @.");
         }
-        if (user.getLogin() == null || user.getLogin().isBlank()) {
+        if (user.getLogin() == null || user.getLogin().isBlank() || containsWhiteSpace(user.getLogin())) {
             throw new ValidateException("Поле login не может быть пустым или содержать пробелы");
-        }
-        if (user.getName() == null) {
-            user.setName(user.getLogin());
         }
         if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidateException("Дата рождения введена не корректно");
@@ -71,12 +75,17 @@ public class UserController {
     }
 
     private long getNextId() {
+        return ++usersId;
+    }
 
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    public static boolean containsWhiteSpace(final String login){
+        if(login != null){
+            for(int i = 0; i < login.length(); i++){
+                if(Character.isWhitespace(login.charAt(i))){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
