@@ -15,13 +15,13 @@ import java.time.LocalDate;
 public class User {
     private Long id;
     @Email
-    @NotNull(message = "email не может быть пустой или не содержать @."    )
+    @NotNull(message = "email не может быть пустой или не содержать @.")
     private String email;
     @NotBlankLogin
     @NotBlank
     private String login;
     private String name;
-    @Past(message = "Дата рождения введена не корректно"    )
+    @Past(message = "Дата рождения введена не корректно")
     private LocalDate birthday;
 
     public void setEmptyName() {
