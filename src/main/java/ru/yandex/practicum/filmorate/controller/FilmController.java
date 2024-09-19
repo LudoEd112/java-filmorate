@@ -5,11 +5,9 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
-import java.time.LocalDate;
 import java.util.Collection;
 
 @RestController
@@ -25,10 +23,9 @@ public class FilmController {
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable int Id) {
-        return filmService.getFilmById(Id);
+    public Film getFilmById(@PathVariable int id) {
+        return filmService.getFilmById(id);
     }
-
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
