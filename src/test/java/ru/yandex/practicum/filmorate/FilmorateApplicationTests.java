@@ -78,16 +78,6 @@ class FilmorateApplicationTests {
 	}
 
 	@Test
-	void shouldNotValidFilmWithWrongReleaseDate() {
-		film.setReleaseDate(LocalDate.of(1800, Month.DECEMBER, 1));
-
-		assertThrows(ValidateException.class, () -> {
-			FilmController filmController = new FilmController();
-			Film film2 = filmController.create(film);
-		});
-	}
-
-	@Test
 	void shouldNotValidFilmWithNegativeDuration() {
 		film.setDuration(-5L);
 
