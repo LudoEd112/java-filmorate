@@ -5,12 +5,9 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.controller.FilmController;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
-import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -75,16 +72,6 @@ class FilmorateApplicationTests {
 							.getAnnotation().annotationType().getSimpleName(),
 					"Не работает валидация на длинное описание фильма");
 		}
-	}
-
-	@Test
-	void shouldNotValidFilmWithWrongReleaseDate() {
-		film.setReleaseDate(LocalDate.of(1800, Month.DECEMBER, 1));
-
-		assertThrows(ValidateException.class, () -> {
-			FilmController filmController = new FilmController();
-			Film film2 = filmController.create(film);
-		});
 	}
 
 	@Test

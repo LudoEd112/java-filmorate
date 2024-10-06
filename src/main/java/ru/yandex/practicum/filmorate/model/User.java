@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
+import ru.yandex.practicum.filmorate.validation.NotBlankLogin;
+
 import java.time.LocalDate;
 
 @Builder
@@ -13,12 +15,13 @@ import java.time.LocalDate;
 public class User {
     private Long id;
     @Email
-    @NotNull
+    @NotNull(message = "email не может быть пустой или не содержать @.")
     private String email;
+    @NotBlankLogin
     @NotBlank
     private String login;
     private String name;
-    @Past
+    @Past(message = "Дата рождения введена не корректно")
     private LocalDate birthday;
 
     public void setEmptyName() {

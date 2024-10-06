@@ -1,91 +1,57 @@
 package ru.yandex.practicum.filmorate.controller;
 
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exceptions.NotExistException;
-import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.ValidateException;
+import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.service.UserService;
+import lombok.RequiredArgsConstructor;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
-@Slf4j
 @RestController
 @RequestMapping("/users")
+@RequiredArgsConstructor
 public class UserController {
-    private final Map<Long, User> users = new HashMap<>();
 
-    private Long usersId = 0L;
+    private final UserService userService;
 
     @GetMapping
-    public Collection<User> getAllFilms() {
-        return users.values();
+    public Collection<User> getAll() {
+        return userService.getAllUsers();
     }
 
     @PostMapping
-    public User create(@RequestBody User user) {
-        if (user == null) {
-            throw new ValidateException("User is null");
-        }
-        checkValidation(user);
-        user.setEmptyName();
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-        log.info("Пользователь добвален");
-        return user;
+    public User createUser(@Valid @RequestBody User user) {
+        return userService.createUser(user);
     }
 
     @PutMapping
-    public User update(@RequestBody User user) {
-        if (user.getId() == null) {
-            throw new NotExistException("При запросе нет ID");
-        }
-        if (!users.containsKey(user.getId())) {
-            throw new NotFoundException("Такой пользователь еще не добавлен");
-        }
-        checkValidation(user);
-        User userUpdate = users.get(user.getId());
-        userUpdate.setEmail(user.getEmail());
-        userUpdate.setName(user.getName());
-        userUpdate.setBirthday(user.getBirthday());
-        userUpdate.setLogin(user.getLogin());
-        log.info("Обновили информацию пользователя");
-        return userUpdate;
+    public User updateUser(@Valid @RequestBody User newUser) {
+        return userService.updateUser(newUser);
     }
 
-    public void checkValidation(User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank() || !(user.getEmail().contains("@"))) {
-            throw new ValidateException("email не может быть пустой или не содержать @.");
-        }
-        if (user.getLogin() == null || user.getLogin().isBlank() || containsWhiteSpace(user.getLogin())) {
-            throw new ValidateException("Поле login не может быть пустым или содержать пробелы");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            throw new ValidateException("Дата рождения введена не корректно");
-        }
+    @GetMapping("/{id}")
+    public User getById(@PathVariable("id") long userId) {
+        return userService.getUserById(userId);
     }
 
-    private long getNextId() {
-        return ++usersId;
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable("id") long userId, @PathVariable("friendId") long friendId) {
+        userService.addFriend(userId, friendId);
     }
 
-    public static boolean containsWhiteSpace(final String login) {
-        if (login != null) {
-            for (int i = 0; i < login.length(); i++) {
-                if (Character.isWhitespace(login.charAt(i))) {
-                    return true;
-                }
-            }
-        }
-        return false;
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable("id") long userId, @PathVariable("friendId") long friendId) {
+        userService.removeFriend(userId, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> getAllFriends(@PathVariable("id") long userId) {
+        return userService.getAllFriends(userId);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Collection<User> getCommonFriends(@PathVariable("id") long userId, @PathVariable("otherId") long otherId) {
+        return userService.getCommonFriends(userId, otherId);
     }
 }

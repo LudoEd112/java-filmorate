@@ -1,11 +1,12 @@
-package ru.yandex.practicum.filmorate.controller;
-
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.yandex.practicum.filmorate.controller.UserController;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 
 import java.time.LocalDate;
 
@@ -14,7 +15,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserControllerTest {
     private User user;
 
-    UserController userController = new UserController();
+    InMemoryUserStorage inMemoryUserStorage = new InMemoryUserStorage();
+    UserService userService = new UserService(inMemoryUserStorage);
+    UserController userController = new UserController(userService);
 
     @BeforeEach
     void init() {
@@ -25,7 +28,7 @@ class UserControllerTest {
                 .name("Dmitrii")
                 .birthday(LocalDate.of(2004, 10, 22))
                 .build();
-        userController.create(user);
+        userController.createUser(user);
 
     }
 
