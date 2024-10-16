@@ -1,16 +1,19 @@
 package ru.yandex.practicum.filmorate.model;
 
 import jakarta.validation.constraints.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.yandex.practicum.filmorate.validation.NotBlankLogin;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User {
     private Long id;
@@ -23,6 +26,7 @@ public class User {
     private String name;
     @Past(message = "Дата рождения введена не корректно")
     private LocalDate birthday;
+    private Set<Long> friends = new LinkedHashSet<>();
 
     public void setEmptyName() {
         if (name == null || name.isBlank()) {

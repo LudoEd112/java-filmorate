@@ -5,6 +5,9 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exceptions.DuplicateEntityException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectDataException;
+import ru.yandex.practicum.filmorate.exceptions.InternalServerException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -34,17 +37,17 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
+    public Film update(@Valid @RequestBody Film film) throws InternalServerException, IncorrectDataException {
         return filmService.update(film);
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public void addLike(@PathVariable("id") long filmId, @PathVariable("userId") long userId) {
+    public void addLike(@PathVariable("id") long filmId, @PathVariable("userId") long userId) throws DuplicateEntityException, InternalServerException {
         filmService.addLike(filmId, userId);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
-    public void removeLike(@PathVariable("id") long filmId, @PathVariable("userId") long userId) {
+    public void removeLike(@PathVariable("id") long filmId, @PathVariable("userId") long userId) throws InternalServerException {
         filmService.removeLike(filmId, userId);
     }
 
