@@ -3,7 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.exceptions.DuplicateEntityException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectDataException;
+import ru.yandex.practicum.filmorate.exceptions.InternalServerException;
+import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
@@ -25,20 +28,16 @@ public class FilmService {
     private final GenreService genreService;
     private final MpaService mpaService;
 
-    public Film create(Film film) throws InternalServerException, IncorrectDataException {
+    public Film create(Film film) {
         log.debug("Создаем фильм: {}", film);
         Film newFilm = filmStorage.createFilm(film);
         mpaService.addMpa(film.getMpa(), newFilm.getId());
-        boolean exist = new HashSet<>(
-                genreService.findAll().stream()
+        boolean exist = genreService.findAll().stream()
+                .map(Genre::getId)
+                .collect(Collectors.toSet())
+                .containsAll(film.getGenres().stream()
                         .map(Genre::getId)
-                        .toList()
-        )
-                .containsAll(
-                        film.getGenres().stream()
-                                .map(Genre::getId)
-                                .toList()
-                );
+                        .toList());
         if (!exist) {
             throw new IncorrectDataException("Не существует одного из представленных жанров - %s"
                     .formatted(film.getGenres()));
@@ -51,7 +50,7 @@ public class FilmService {
     }
 
 
-    public Film update(Film film) throws InternalServerException, IncorrectDataException {
+    public Film update(Film film) {
         log.debug("Обновляем фильм: {}", film);
         Film oldFilm = filmStorage.getFilmById(film.getId());
         if (film.getGenres() != null) {

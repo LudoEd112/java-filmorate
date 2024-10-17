@@ -12,7 +12,7 @@ import java.util.List;
 public class GenresExistByFilmMapper implements RowMapper<List<Long>> {
     @Override
     public List<Long> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        ArrayList<Long> genres = new ArrayList<>();
+        List<Long> genres = new ArrayList<>();
         do {
             genres.add(resultSet.getLong("genre_id"));
         } while (resultSet.next());

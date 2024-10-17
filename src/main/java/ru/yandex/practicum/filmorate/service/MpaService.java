@@ -26,7 +26,7 @@ public class MpaService {
         return storage.getMpaById(mpaId);
     }
 
-    public boolean addMpa(Mpa mpa, Long filmId) throws IncorrectDataException {
+    public boolean addMpa(Mpa mpa, Long filmId) {
         if (!storage.isMpaExistId(mpa.getId())) {
             throw new IncorrectDataException("Mpa с id %s не сущетсвует".formatted(mpa.getId()));
         }

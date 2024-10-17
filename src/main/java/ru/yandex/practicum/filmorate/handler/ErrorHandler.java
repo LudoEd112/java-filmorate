@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpServerErrorException;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectDataException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 import ru.yandex.practicum.filmorate.exceptions.NotExistException;
@@ -39,6 +40,16 @@ public class ErrorHandler {
     public Map<String, String> handleIncorrectDataException(IncorrectDataException e) {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Некорректные данные");
+        response.put("message", e.getMessage());
+        return response;
+    }
+
+    @ExceptionHandler(HttpServerErrorException.InternalServerError.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleInternalServerError(Exception e) {
+        log.error("InternalServerError: {}", e.getMessage(), e);
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Внутренняя ошибка сервера");
         response.put("message", e.getMessage());
         return response;
     }

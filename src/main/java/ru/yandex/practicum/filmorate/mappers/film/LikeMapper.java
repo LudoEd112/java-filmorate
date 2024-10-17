@@ -13,7 +13,7 @@ public class LikeMapper implements RowMapper<Set<Long>> {
 
     @Override
     public Set<Long> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
-        HashSet<Long> likes = new HashSet<>();
+        Set<Long> likes = new HashSet<>();
         do {
             likes.add(resultSet.getLong("user_id"));
         } while (resultSet.next());

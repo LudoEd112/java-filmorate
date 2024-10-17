@@ -59,7 +59,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User createUser(User user) throws InternalServerException {
+    public User createUser(User user) {
         long id = insert(
                 SQL_INSERT_USER,
                 user.getEmail(),
@@ -71,7 +71,7 @@ public class UserDbStorage implements UserStorage {
         return user;
     }
 
-    protected long insert(String query, Object... params) throws InternalServerException {
+    protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection
@@ -92,7 +92,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     @Override
-    public User updateUser(User user) throws InternalServerException {
+    public User updateUser(User user) {
         int rowsUpdated = jdbc.update(SQL_UPDATE_USER_BY_ID, user.getEmail(), user.getLogin(), user.getName(), user.getBirthday(), user.getId());
         if (rowsUpdated == 0) {
             throw new NotFoundException("Не удалось обновить данные");

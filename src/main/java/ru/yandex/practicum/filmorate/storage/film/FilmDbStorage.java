@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
     private static final String SQL_ADD_FILM_LIKE = "INSERT INTO FILM_LIKE(FILM_ID, USER_ID) VALUES (?, ?);";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM FILM_LIKE WHERE film_id = ? AND user_id = ?;";
     private static final String SQL_CHECK_LIKE_EXISTS = "SELECT COUNT(*) AS likes FROM film_like WHERE film_id = ? AND user_id = ?";
-    private static final String SQL_GET_FILM_BY_ID = "SELECT * FROM FILMS f WHERE id = ? ;";
+    private static final String SQL_GET_FILM_BY_ID = "SELECT f.id, f.name, f.description, f.release_date, f.duration_minutes, f.rating_id FROM FILMS f WHERE id = ? ;";
     private static final String SQL_GET_FILM_LIKES = "SELECT user_id FROM film_like fl WHERE film_id = ?;";
     private static final String SQL_FIND_ALL_FILMS = "SELECT F.ID,\n" +
             "                   F.NAME,\n" +
@@ -86,7 +86,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film createFilm(Film film) throws InternalServerException {
+    public Film createFilm(Film film) {
         long id = insert(
                 INSERT_QUERY,
                 film.getName(),
@@ -98,7 +98,7 @@ public class FilmDbStorage implements FilmStorage {
         return film;
     }
 
-    protected long insert(String query, Object... params) throws InternalServerException {
+    protected long insert(String query, Object... params) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement ps = connection
@@ -118,7 +118,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public Film updateFilm(Film film) throws InternalServerException {
+    public Film updateFilm(Film film) {
         int rowsUpdated = jdbc.update(SQL_UPDATE_FILM, film.getName(), film.getDescription(),
                 film.getReleaseDate(), film.getDuration(), film.getId());
         if (rowsUpdated == 0) {
@@ -128,7 +128,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void addLike(Film film, User user) throws DuplicateEntityException, InternalServerException {
+    public void addLike(Film film, User user) {
         if (likeCheck(film.getId(), user.getId())) {
             throw new DuplicateEntityException("Пользователь %s уже ставил фильму %s лайк".formatted(user.getId(), film.getId()));
         }
@@ -139,7 +139,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public void removeLike(Film film, User user) throws InternalServerException {
+    public void removeLike(Film film, User user) {
         int likeDeleted = jdbc.update(DELETE_LIKE_QUERY, film.getId(), user.getId());
         if (likeDeleted != 1) {
             throw new InternalServerException("Не удалось удалить лайк");

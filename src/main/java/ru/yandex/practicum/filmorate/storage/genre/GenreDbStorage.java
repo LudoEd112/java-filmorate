@@ -10,7 +10,14 @@ import ru.yandex.practicum.filmorate.mappers.genre.GenresMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Collection;
+import java.util.Map;
+import java.util.HashMap;
+
 
 @Component
 @RequiredArgsConstructor
