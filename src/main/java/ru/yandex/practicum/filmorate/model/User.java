@@ -6,7 +6,6 @@ import lombok.experimental.FieldDefaults;
 import ru.yandex.practicum.filmorate.validation.NotBlankLogin;
 
 import java.time.LocalDate;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
