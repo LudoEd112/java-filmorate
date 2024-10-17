@@ -6,10 +6,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectDataException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 import ru.yandex.practicum.filmorate.exceptions.NotExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,16 +36,16 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
+    /*@ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleThrowable(final Throwable e) {
         log.error("handleThrowable: {}", e.getMessage());
         return new ErrorResponse(
                 e.getMessage()
         );
-    }
+    }*/
 
-    @ExceptionHandler
+    /*@ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
         log.error("handleMethodArgumentNotValidException: {}", e.getMessage());
@@ -53,5 +56,14 @@ public class ErrorHandler {
                         .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                         .collect(Collectors.joining("; "))
         );
+    }*/
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIncorrectDataException(IncorrectDataException e) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Некорректные данные");
+        response.put("message", e.getMessage());
+        return response;
     }
 }

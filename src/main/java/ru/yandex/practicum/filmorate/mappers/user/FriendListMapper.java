@@ -10,11 +10,11 @@ import java.util.ArrayList;
 @Component
 public class FriendListMapper implements RowMapper<ArrayList<Long>> {
     @Override
-    public ArrayList<Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public ArrayList<Long> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         ArrayList<Long> friends = new ArrayList<>();
         do {
-            friends.add(rs.getLong("id"));
-        } while (rs.next());
+            friends.add(resultSet.getLong("id"));
+        } while (resultSet.next());
         return friends;
     }
 }

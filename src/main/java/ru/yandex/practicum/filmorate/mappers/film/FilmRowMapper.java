@@ -16,15 +16,15 @@ public class FilmRowMapper implements RowMapper<List<Film>> {
     @Override
     public List<Film> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         List<Film> list = new ArrayList<>();
-        while (resultSet.next()) {
-            Film iterFilm = new Film();
-            iterFilm.setId(resultSet.getLong("id"));
-            iterFilm.setName(resultSet.getString("name"));
-            iterFilm.setDescription(resultSet.getString("description"));
-            iterFilm.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
-            iterFilm.setDuration(Duration.ofSeconds(resultSet.getLong("duration_minutes")));
-            list.add(iterFilm);
-        }
+        do {
+            Film film = new Film();
+            film.setId(resultSet.getLong("id"));
+            film.setName(resultSet.getString("name"));
+            film.setDescription(resultSet.getString("description"));
+            film.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
+            film.setDuration(Duration.ofSeconds(resultSet.getLong("duration_minutes")));
+            list.add(film);
+        } while (resultSet.next());
         return list;
     }
 }

@@ -1,14 +1,10 @@
 package ru.yandex.practicum.filmorate.storage.film;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.stereotype.Component;/*
-import ru.yandex.practicum.filmorate.exception.DuplicateEntityException;
-import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
-import ru.yandex.practicum.filmorate.exception.InternalServerException;*/
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exceptions.DuplicateEntityException;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServerException;
@@ -19,6 +15,8 @@ import ru.yandex.practicum.filmorate.mappers.film.RatedFilmsMapper;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.*;
 
 @Component
@@ -31,14 +29,16 @@ public class FilmDbStorage implements FilmStorage {
     private final LikeMapper likeMapper;
     private final LikeCheckMapper likeCheckMapper;
     private final RatedFilmsMapper ratedMapper;
-    private static final String ENTITY_NOT_FOUND = "Фильм с id %s не найден";
-    private static final String UPDATE_FILM_QUERY = "UPDATE films SET name = ?, description = ?, release_date = ?, duration_minutes = ? WHERE id = ?;";
-    private static final String ADD_LIKE_QUERY = "INSERT INTO FILM_LIKE(FILM_ID, USER_ID) VALUES (?, ?);";
+    private static final String INSERT_QUERY = "INSERT INTO FILMS (NAME , DESCRIPTION , RELEASE_DATE , DURATION_MINUTES)\n" +
+            " VALUES (?, ?, ?, ?)";
+    private static final String ERROR_FILM_NOT_FOUND = "Фильм с id %s не найден";
+    private static final String SQL_UPDATE_FILM = "UPDATE films SET name = ?, description = ?, release_date = ?, duration_minutes = ? WHERE id = ?;";
+    private static final String SQL_ADD_FILM_LIKE = "INSERT INTO FILM_LIKE(FILM_ID, USER_ID) VALUES (?, ?);";
     private static final String DELETE_LIKE_QUERY = "DELETE FROM FILM_LIKE WHERE film_id = ? AND user_id = ?;";
-    private static final String LIKE_CHECK_QUERY = "SELECT COUNT(*) AS likes FROM film_like WHERE film_id = ? AND user_id = ?";
-    private static final String GET_FILM_QUERY = "SELECT * FROM FILMS f WHERE id = ?;";
-    private static final String GET_LIKES_QUERY = "SELECT user_id FROM film_like fl WHERE film_id = ?;";
-    private static final String FIND_ALL_QUERY = "SELECT F.ID,\n" +
+    private static final String SQL_CHECK_LIKE_EXISTS = "SELECT COUNT(*) AS likes FROM film_like WHERE film_id = ? AND user_id = ?";
+    private static final String SQL_GET_FILM_BY_ID = "SELECT * FROM FILMS f WHERE id = ? ;";
+    private static final String SQL_GET_FILM_LIKES = "SELECT user_id FROM film_like fl WHERE film_id = ?;";
+    private static final String SQL_FIND_ALL_FILMS = "SELECT F.ID,\n" +
             "                   F.NAME,\n" +
             "                   F.DESCRIPTION,\n" +
             "                   F.RELEASE_DATE,\n" +
@@ -54,7 +54,7 @@ public class FilmDbStorage implements FilmStorage {
             "            LEFT JOIN FILM_LIKE FL ON F.ID = FL.FILM_ID\n" +
             "            GROUP BY F.ID\n" +
             "            ORDER BY f.ID;";
-    private static final String GET_RATED_FILMS_QUERY = "SELECT F.ID,\n" +
+    private static final String SQL_GET_TOP_RATED_FILMS = "SELECT F.ID,\n" +
             "                   F.NAME,\n" +
             "                   F.DESCRIPTION,\n" +
             "                   F.RELEASE_DATE,\n" +
@@ -75,35 +75,51 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Collection<Film> getAllFilms() {
-        return Optional.of(jdbc.query(FIND_ALL_QUERY, ratedMapper).getFirst())
+        return Optional.of(jdbc.query(SQL_FIND_ALL_FILMS, ratedMapper).getFirst())
                 .orElseThrow(() -> new EntityNotFoundException("Не удалось получить фильмы"));
     }
 
     @Override
     public Film getFilmById(long id) {
-        return Optional.ofNullable(jdbc.queryForObject(GET_FILM_QUERY, mapper, id).getFirst())
-                .orElseThrow(() -> new EntityNotFoundException(ENTITY_NOT_FOUND.formatted(id)));
+        return Optional.ofNullable(jdbc.queryForObject(SQL_GET_FILM_BY_ID, mapper, id).getFirst())
+                .orElseThrow(() -> new EntityNotFoundException(ERROR_FILM_NOT_FOUND.formatted(id)));
     }
 
     @Override
-    public Film createFilm(Film film) {
-        Map<String, Object> filmMap = new HashMap<>();
-        filmMap.put("name", film.getName());
-        filmMap.put("description", film.getDescription());
-        filmMap.put("release_date", java.sql.Date.valueOf(film.getReleaseDate()));
-        filmMap.put("duration_minutes", film.getDuration());
+    public Film createFilm(Film film) throws InternalServerException {
+        long id = insert(
+                INSERT_QUERY,
+                film.getName(),
+                film.getDescription(),
+                java.sql.Date.valueOf(film.getReleaseDate()),
+                film.getDuration()
+        );
+        film.setId(id);
+        return film;
+    }
 
-        SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbc)
-                .withTableName("films")
-                .usingGeneratedKeyColumns("id");
+    protected long insert(String query, Object... params) throws InternalServerException {
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbc.update(connection -> {
+            PreparedStatement ps = connection
+                    .prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            for (int idx = 0; idx < params.length; idx++) {
+                ps.setObject(idx + 1, params[idx]);
+            }
+            return ps;}, keyHolder);
 
-        Long filmId = simpleJdbcInsert.executeAndReturnKey(filmMap).longValue();
-        return getFilmById(filmId);
+        Long id = keyHolder.getKeyAs(Long.class);
+        // Возвращаем id нового пользователя
+        if (id != null) {
+            return id;
+        } else {
+            throw new InternalServerException("Не удалось сохранить данные");
+        }
     }
 
     @Override
     public Film updateFilm(Film film) throws InternalServerException {
-        int rowsUpdated = jdbc.update(UPDATE_FILM_QUERY, film.getName(), film.getDescription(),
+        int rowsUpdated = jdbc.update(SQL_UPDATE_FILM, film.getName(), film.getDescription(),
                 film.getReleaseDate(), film.getDuration(), film.getId());
         if (rowsUpdated == 0) {
             throw new InternalServerException("Не удалось обновить данные");
@@ -116,7 +132,7 @@ public class FilmDbStorage implements FilmStorage {
         if (likeCheck(film.getId(), user.getId())) {
             throw new DuplicateEntityException("Пользователь %s уже ставил фильму %s лайк".formatted(user.getId(), film.getId()));
         }
-        int likeAdded = jdbc.update(ADD_LIKE_QUERY, film.getId(), user.getId());
+        int likeAdded = jdbc.update(SQL_ADD_FILM_LIKE, film.getId(), user.getId());
         if (likeAdded != 1) {
             throw new InternalServerException("Не удалось добавить лайк");
         }
@@ -131,16 +147,16 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Collection<Film> getPopularFilms(int count) {
-        return Optional.of(jdbc.query(GET_RATED_FILMS_QUERY, ratedMapper, count).getFirst())
+        return Optional.of(jdbc.query(SQL_GET_TOP_RATED_FILMS, ratedMapper, count).getFirst())
                 .orElseThrow(() -> new EntityNotFoundException("Не удалось получить популярные фильмы"));
     }
 
     public boolean likeCheck(Long filmId, Long userId) {
-        return jdbc.query(LIKE_CHECK_QUERY, likeCheckMapper, filmId, userId).getFirst();
+        return jdbc.query(SQL_CHECK_LIKE_EXISTS, likeCheckMapper, filmId, userId).getFirst();
     }
 
     public Set<Long> getLikes(Long filmId) {
-        List<Set<Long>> query = jdbc.query(GET_LIKES_QUERY, likeMapper, filmId);
+        List<Set<Long>> query = jdbc.query(SQL_GET_FILM_LIKES, likeMapper, filmId);
         if (query.isEmpty()) {
             return new HashSet<>();
         }

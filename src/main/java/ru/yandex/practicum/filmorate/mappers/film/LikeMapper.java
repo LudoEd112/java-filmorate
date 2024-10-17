@@ -12,11 +12,11 @@ import java.util.Set;
 public class LikeMapper implements RowMapper<Set<Long>> {
 
     @Override
-    public Set<Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public Set<Long> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         HashSet<Long> likes = new HashSet<>();
         do {
-            likes.add(rs.getLong("user_id"));
-        } while (rs.next());
+            likes.add(resultSet.getLong("user_id"));
+        } while (resultSet.next());
         return likes;
     }
 }

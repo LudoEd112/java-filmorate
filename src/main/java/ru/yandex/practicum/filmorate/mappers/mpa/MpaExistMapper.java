@@ -9,7 +9,7 @@ import java.sql.SQLException;
 @Component
 public class MpaExistMapper implements RowMapper<Boolean> {
     @Override
-    public Boolean mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return rs.getLong("exist") > 0;
+    public Boolean mapRow(ResultSet resultSet, int rowNum) throws SQLException {
+        return resultSet.getLong("exist") > 0;
     }
 }

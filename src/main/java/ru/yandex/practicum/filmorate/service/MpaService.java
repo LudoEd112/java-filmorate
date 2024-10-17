@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.DuplicateEntityException;
 import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectDataException;
+import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.mpa.MpaDbStorage;
 
@@ -21,7 +22,7 @@ public class MpaService {
 
     public Mpa getMpa(Long mpaId) {
         if (!storage.isMpaExistId(mpaId)) {
-            throw new EntityNotFoundException("Mpa с id %s не найден".formatted(mpaId));
+            throw new NotFoundException("Mpa с id %s не найден".formatted(mpaId));
         }
         return storage.getMpaById(mpaId);
     }

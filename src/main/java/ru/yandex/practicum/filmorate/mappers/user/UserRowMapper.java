@@ -14,7 +14,7 @@ public class UserRowMapper implements RowMapper<Map<Long, User>> {
     @Override
     public Map<Long, User> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         Map<Long, User> map = new HashMap<>();
-        while (resultSet.next()) {
+        do {
             Long userId = resultSet.getLong("id");
             User user = map.getOrDefault(userId, new User());
             if (user.getId() == null) {
@@ -29,7 +29,7 @@ public class UserRowMapper implements RowMapper<Map<Long, User>> {
                 user.getFriends().add(friendId);
             }
             map.put(userId, user);
-        }
+        } while (resultSet.next());
 
         return map;
     }

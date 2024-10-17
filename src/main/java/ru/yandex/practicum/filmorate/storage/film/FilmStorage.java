@@ -13,7 +13,7 @@ public interface FilmStorage {
 
     Film getFilmById(long id);
 
-    Film createFilm(Film film);
+    Film createFilm(Film film) throws InternalServerException;
 
     Film updateFilm(Film film) throws InternalServerException;
 

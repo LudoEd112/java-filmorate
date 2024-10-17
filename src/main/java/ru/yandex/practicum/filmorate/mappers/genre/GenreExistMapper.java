@@ -9,7 +9,7 @@ import java.sql.SQLException;
 @Component
 public class GenreExistMapper implements RowMapper<Boolean> {
     @Override
-    public Boolean mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return rs.getLong("genre_exist") > 0;
+    public Boolean mapRow(ResultSet resultSet, int rowNum) throws SQLException {
+        return resultSet.getLong("genre_exist") > 0;
     }
 }

@@ -16,40 +16,40 @@ import java.util.stream.Collectors;
 @Component
 public class RatedFilmsMapper implements RowMapper<List<Film>> {
     @Override
-    public List<Film> mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public List<Film> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         List<Film> list = new ArrayList<>();
         do {
-            Film iterFilm = new Film();
-            iterFilm.setId(rs.getLong("id"));
-            iterFilm.setName(rs.getString("name"));
-            iterFilm.setDescription(rs.getString("description"));
-            iterFilm.setReleaseDate(rs.getDate("release_date").toLocalDate());
-            iterFilm.setDuration(Duration.ofSeconds(rs.getLong("duration_minutes")));
-            iterFilm.setMpa(new Mpa(rs.getLong("rating_id"), rs.getString("r_name")));
+            Film film = new Film();
+            film.setId(resultSet.getLong("id"));
+            film.setName(resultSet.getString("name"));
+            film.setDescription(resultSet.getString("description"));
+            film.setReleaseDate(resultSet.getDate("release_date").toLocalDate());
+            film.setDuration(Duration.ofSeconds(resultSet.getLong("duration_minutes")));
+            film.setMpa(new Mpa(resultSet.getLong("rating_id"), resultSet.getString("r_name")));
 
-            String genresString = rs.getString("genres");
+            String genresString = resultSet.getString("genres");
             if (!StringUtils.isBlank(genresString)) {
                 Set<Genre> genres = Arrays.stream(genresString.split(","))
                         .map(genre -> genre.split("/"))
                         .map(parts -> new Genre(Long.parseLong(parts[0]), parts[1]))
                         .collect(Collectors.toCollection(LinkedHashSet::new));
-                iterFilm.setGenres(genres);
+                film.setGenres(genres);
             } else {
-                iterFilm.setGenres(Set.of());
+                film.setGenres(Set.of());
             }
 
-            String likesString = rs.getString("likes");
+            String likesString = resultSet.getString("likes");
             if (!StringUtils.isBlank(likesString)) {
                 Set<Long> likes = Arrays.stream(likesString.split(","))
                         .map(Long::parseLong)
                         .collect(Collectors.toSet());
-                iterFilm.setLikes(likes);
+                film.setLikes(likes);
             } else {
-                iterFilm.setLikes(Set.of());
+                film.setLikes(Set.of());
             }
 
-            list.add(iterFilm);
-        } while (rs.next());
+            list.add(film);
+        } while (resultSet.next());
         return list;
     }
 }

@@ -1,11 +1,8 @@
-
 package ru.yandex.practicum.filmorate.service;
-
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exceptions.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.InternalServerException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -21,7 +18,7 @@ public class UserService {
 
     private final UserDbStorage userStorage;
 
-    public User createUser(User user) {
+    public User createUser(User user) throws InternalServerException {
         log.info("Создание пользователя: {}", user);
         return userStorage.createUser(user);
     }
@@ -36,6 +33,12 @@ public class UserService {
     }
 
     public User addFriend(long userId, long friendId) {
+        if (!userStorage.getAllUsers().stream().map(User::getId).toList().contains(userId)) {
+            throw new NotFoundException("Пользователя с Id %d не существует".formatted(userId));
+        }
+        if (!userStorage.getAllUsers().stream().map(User::getId).toList().contains(friendId)) {
+            throw new NotFoundException("Пользователя с Id %d не существует".formatted(friendId));
+        }
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
         log.debug("Добавление пользователя {} в друг к {}", user, friend);
@@ -45,6 +48,12 @@ public class UserService {
     }
 
     public User removeFriend(long userId, long friendId) {
+        if (!userStorage.getAllUsers().stream().map(User::getId).toList().contains(userId)) {
+            throw new NotFoundException("Пользователя с Id %d не существует".formatted(userId));
+        }
+        if (!userStorage.getAllUsers().stream().map(User::getId).toList().contains(friendId)) {
+            throw new NotFoundException("Пользователя с Id %d не существует".formatted(friendId));
+        }
         User user = userStorage.getUserById(userId);
         User friend = userStorage.getUserById(friendId);
         log.debug("Удаление пользователя {} из друзей {}", user, friend);
@@ -69,6 +78,9 @@ public class UserService {
     }
 
     public Collection<User> getAllFriends(long userId) {
+        if (!userStorage.getAllUsers().stream().map(User::getId).toList().contains(userId)) {
+            throw new NotFoundException("Пользователя с Id %d не существует".formatted(userId));
+        }
         User user = userStorage.getUserById(userId);
         return getUsersById(userStorage.getFriendsList(user));
     }

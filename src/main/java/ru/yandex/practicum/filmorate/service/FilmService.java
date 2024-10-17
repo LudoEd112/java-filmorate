@@ -8,11 +8,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmDbStorage;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +25,9 @@ public class FilmService {
     private final GenreService genreService;
     private final MpaService mpaService;
 
-    public Film create(Film film) {
+    public Film create(Film film) throws InternalServerException, IncorrectDataException {
         log.debug("Создаем фильм: {}", film);
-        return filmStorage.createFilm(film);
-    }
-
-    public Film update(Film film) throws InternalServerException, IncorrectDataException {
-        log.debug("Обновляем фильм: {}", film);
-        Film newFilm = filmStorage.updateFilm(film);
+        Film newFilm = filmStorage.createFilm(film);
         mpaService.addMpa(film.getMpa(), newFilm.getId());
         boolean exist = new HashSet<>(
                 genreService.findAll().stream()
@@ -47,8 +43,40 @@ public class FilmService {
             throw new IncorrectDataException("Не существует одного из представленных жанров - %s"
                     .formatted(film.getGenres()));
         }
+        newFilm.setGenres(film.getGenres().stream()
+                .sorted(Comparator.comparing(Genre::getId))  // Сортировка по id жанра
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
         genreService.insertGenresToFilm(newFilm.getId(), film.getGenres());
-        return getFilmById(newFilm.getId());
+        return newFilm;
+    }
+
+
+    public Film update(Film film) throws InternalServerException, IncorrectDataException {
+        log.debug("Обновляем фильм: {}", film);
+        Film oldFilm = filmStorage.getFilmById(film.getId());
+        if (film.getGenres() != null) {
+            genreService.deleteGenres(film.getId());
+            genreService.updateGenres(film);
+        }
+        if (film.getName() != null) {
+            oldFilm.setName(film.getName());
+        }
+        if (film.getDescription() != null) {
+            oldFilm.setDescription(film.getDescription());
+        }
+        if (film.getDuration() != null) {
+            oldFilm.setDuration(film.getDuration());
+        }
+        if (film.getReleaseDate() != null) {
+            oldFilm.setReleaseDate(film.getReleaseDate());
+        }
+        if (film.getMpa() != null) {
+            mpaService.addMpa(film.getMpa(), film.getId());
+        }
+        filmStorage.updateFilm(oldFilm);
+        return oldFilm;
+
+
     }
 
     public void addLike(long filmId, long userId) throws DuplicateEntityException, InternalServerException {

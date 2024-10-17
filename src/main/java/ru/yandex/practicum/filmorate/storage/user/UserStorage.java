@@ -11,7 +11,7 @@ public interface UserStorage {
 
     User getUserById(long id);
 
-    User createUser(User user);
+    User createUser(User user) throws InternalServerException;
 
     User updateUser(User user) throws InternalServerException;
 

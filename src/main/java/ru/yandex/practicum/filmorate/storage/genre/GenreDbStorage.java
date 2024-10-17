@@ -19,30 +19,29 @@ public class GenreDbStorage {
     private final GenresMapper mapper;
     private final GenreExistMapper existMapper;
     private final GenresExistByFilmMapper genresExistByFilmMapper;
-    private static final String GET_GENRES_QUERY = "SELECT * FROM genre;";
-    private static final String GET_GENRES_BY_FILM_QUERY = "SELECT g.GENRE_ID, g.NAME FROM GENRE g RIGHT JOIN FILM_GENRE fg ON g.GENRE_ID = fg.GENRE_ID WHERE fg.FILM_ID = ?;";
-    private static final String UPDATE_GENRE_QUERY = "UPDATE genre SET name = ? WHERE genre_id = ?;";
-    private static final String GET_GENRE_BY_ID = "SELECT * FROM genre WHERE genre_id = ?;";
-    private static final String DELETE_GENRE_QUERY = "DELETE FROM genre WHERE genre_id = ?;";
-    private static final String CHECK_GENRE_EXIST_NAME_QUERY = "SELECT COUNT(*) AS genre_exist FROM genre WHERE name = ?;";
-    private static final String INSERT_GENRES_QUERY = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?);";
-    private static final String DELETE_FILM_GENRE_QUERY = "DELETE FROM film_genre WHERE film_id = ?;";
-    private static final String CHECK_GENRE_EXIST_ID_QUERY = "SELECT COUNT(*) AS genre_exist FROM genre WHERE genre_id = ?;";
-    private static final String GENRE_EXIST_BY_FILM_QUERY = "SELECT g.genre_id\n" +
+    private static final String SQL_GET_ALL_GENRES = "SELECT * FROM genre;";
+    private static final String SQL_GET_GENRES_BY_FILM_ID = "SELECT g.GENRE_ID, g.NAME FROM GENRE g RIGHT JOIN FILM_GENRE fg ON g.GENRE_ID = fg.GENRE_ID WHERE fg.FILM_ID = ?;";
+    private static final String SQL_GET_GENRE_BY_ID = "SELECT * FROM genre WHERE genre_id = ?;";
+    private static final String SQL_DELETE_GENRE_BY_ID = "DELETE FROM genre WHERE genre_id = ?;";
+    private static final String SQL_CHECK_GENRE_EXISTS_BY_NAME = "SELECT COUNT(*) AS genre_exist FROM genre WHERE name = ?;";
+    private static final String SQL_INSERT_FILM_GENRES = "INSERT INTO film_genre (film_id, genre_id) VALUES (?, ?);";
+    private static final String SQL_DELETE_FILM_GENRES_BY_FILM_ID = "DELETE FROM film_genre WHERE film_id = ?;";
+    private static final String SQL_CHECK_GENRE_EXISTS_BY_ID = "SELECT COUNT(*) AS genre_exist FROM genre WHERE genre_id = ?;";
+    private static final String SQL_GENRE_EXISTS_BY_FILM_ID = "SELECT g.genre_id\n" +
             "FROM GENRE g \n" +
             "JOIN FILM_GENRE fg ON g.GENRE_ID = fg.GENRE_ID \n" +
             "WHERE fg.FILM_ID = ?";
 
     public Set<Genre> getGenresByFilm(Long filmId) {
-        List<List<Genre>> query = jdbc.query(GET_GENRES_BY_FILM_QUERY, mapper, filmId);
+        List<List<Genre>> query = jdbc.query(SQL_GET_GENRES_BY_FILM_ID, mapper, filmId);
         if (query.isEmpty()) {
             return new HashSet<>();
         }
-        return new LinkedHashSet<>(query.getFirst());
+        return new LinkedHashSet<>(query.get(0));
     }
 
     public Genre getGenreById(Long genreId) {
-        List<List<Genre>> query = jdbc.query(GET_GENRE_BY_ID, mapper, genreId);
+        List<List<Genre>> query = jdbc.query(SQL_GET_GENRE_BY_ID, mapper, genreId);
         if (query.isEmpty()) {
             return null;
         }
@@ -50,7 +49,7 @@ public class GenreDbStorage {
     }
 
     public Collection<Genre> findAll() {
-        return jdbc.query(GET_GENRES_QUERY, mapper).getFirst();
+        return jdbc.query(SQL_GET_ALL_GENRES, mapper).getFirst();
     }
 
     public Long create(Genre genre) {
@@ -65,15 +64,15 @@ public class GenreDbStorage {
     }
 
     public boolean delete(Long id) {
-        return jdbc.update(DELETE_GENRE_QUERY, id) > 0;
+        return jdbc.update(SQL_DELETE_GENRE_BY_ID, id) > 0;
     }
 
     public boolean isGenreExistByName(String name) {
-        return jdbc.query(CHECK_GENRE_EXIST_NAME_QUERY, existMapper, name).getFirst();
+        return jdbc.query(SQL_CHECK_GENRE_EXISTS_BY_NAME, existMapper, name).getFirst();
     }
 
     public void insertFilmGenres(Long filmId, Set<Genre> genres) {
-        genres.forEach(genre -> jdbc.update(INSERT_GENRES_QUERY, filmId, genre.getId()));
+        genres.forEach(genre -> jdbc.update(SQL_INSERT_FILM_GENRES, filmId, genre.getId()));
     }
 
     public void updateGenres(Film updFilm) {
@@ -84,19 +83,19 @@ public class GenreDbStorage {
                 .map(genre -> new Object[]{id, genre.getId()})
                 .toList();
 
-        jdbc.batchUpdate(INSERT_GENRES_QUERY, batchArgs);
+        jdbc.batchUpdate(SQL_INSERT_FILM_GENRES, batchArgs);
     }
 
     public void deleteFilmGenres(Long filmId) {
-        jdbc.update(DELETE_FILM_GENRE_QUERY, filmId);
+        jdbc.update(SQL_DELETE_FILM_GENRES_BY_FILM_ID, filmId);
     }
 
     public boolean isGenreExistId(Long genreId) {
-        return jdbc.query(CHECK_GENRE_EXIST_ID_QUERY, existMapper, genreId).getFirst();
+        return jdbc.query(SQL_CHECK_GENRE_EXISTS_BY_ID, existMapper, genreId).getFirst();
     }
 
     public List<Long> isGenresExistByFilm(Long filmId) {
-        return jdbc.query(GENRE_EXIST_BY_FILM_QUERY, genresExistByFilmMapper, filmId).getFirst();
+        return jdbc.query(SQL_GENRE_EXISTS_BY_FILM_ID, genresExistByFilmMapper, filmId).getFirst();
     }
 
 }

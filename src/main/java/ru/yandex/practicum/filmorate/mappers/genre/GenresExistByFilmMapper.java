@@ -11,11 +11,11 @@ import java.util.List;
 @Component
 public class GenresExistByFilmMapper implements RowMapper<List<Long>> {
     @Override
-    public List<Long> mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public List<Long> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         ArrayList<Long> genres = new ArrayList<>();
         do {
-            genres.add(rs.getLong("genre_id"));
-        } while (rs.next());
+            genres.add(resultSet.getLong("genre_id"));
+        } while (resultSet.next());
         return genres;
     }
 }
