@@ -1,24 +1,25 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
+import  ru.yandex.practicum.filmorate.exceptions.InternalServerException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 
 public interface UserStorage {
     Collection<User> getAllUsers();
 
-    Optional<User> getUserById(long id);
+    User getUserById(long id);
 
-    User createUser(User user);
+    User createUser(User user) throws InternalServerException;
 
-    User updateUser(User user);
+    User updateUser(User user) throws InternalServerException;
 
     void addToFriends(User user, User friend);
 
     void removeFromFriends(User user, User friend);
 
-    Collection<User> getMutualFriends(User user, User friend);
+    List<Long> getMutualFriends(User user, User friend);
 
-    Collection<User> getFriendsList(User user);
+    List<Long> getFriendsList(User user);
 }

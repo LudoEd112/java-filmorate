@@ -2,15 +2,17 @@ package ru.yandex.practicum.filmorate.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.client.HttpServerErrorException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectDataException;
 import ru.yandex.practicum.filmorate.model.ErrorResponse;
 import ru.yandex.practicum.filmorate.exceptions.NotExistException;
 import ru.yandex.practicum.filmorate.exceptions.NotFoundException;
 
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice
@@ -34,24 +36,21 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleThrowable(final Throwable e) {
-        log.error("handleThrowable: {}", e.getMessage());
-        return new ErrorResponse(
-                e.getMessage()
-        );
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIncorrectDataException(IncorrectDataException e) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Некорректные данные");
+        response.put("message", e.getMessage());
+        return response;
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
-        log.error("handleMethodArgumentNotValidException: {}", e.getMessage());
-        return new ErrorResponse(
-                e.getBindingResult()
-                        .getFieldErrors()
-                        .stream()
-                        .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
-                        .collect(Collectors.joining("; "))
-        );
+    @ExceptionHandler(HttpServerErrorException.InternalServerError.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleInternalServerError(Exception e) {
+        log.error("InternalServerError: {}", e.getMessage(), e);
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Внутренняя ошибка сервера");
+        response.put("message", e.getMessage());
+        return response;
     }
 }
